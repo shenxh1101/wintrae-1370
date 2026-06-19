@@ -123,29 +123,29 @@ def _extract_from_first_page(text: str) -> Dict[str, Any]:
 
 
 def enrich_paper(paper: Paper, use_filename: bool = True) -> Paper:
-    if use_filename and not paper.title:
-        parsed = parse_filename(paper.file_name)
-        if parsed["title"]:
-            paper.title = parsed["title"]
-        if parsed["authors"] and not paper.authors:
-            paper.authors = parsed["authors"]
-        if parsed["year"] and not paper.year:
-            paper.year = parsed["year"]
-
     if paper.file_path.endswith(".pdf"):
         meta = extract_pdf_metadata(paper.file_path)
-        if meta["title"] and not paper.title:
+        if meta["title"]:
             paper.title = meta["title"]
-        if meta["authors"] and not paper.authors:
+        if meta["authors"]:
             paper.authors = meta["authors"]
-        if meta["year"] and not paper.year:
+        if meta["year"]:
             paper.year = meta["year"]
-        if meta["doi"] and not paper.doi:
+        if meta["doi"]:
             paper.doi = meta["doi"]
-        if meta["keywords"] and not paper.keywords:
+        if meta["keywords"]:
             paper.keywords = meta["keywords"]
-        if meta["subject"] and not paper.journal:
+        if meta["subject"]:
             paper.journal = meta["subject"]
+
+    if use_filename:
+        parsed = parse_filename(paper.file_name)
+        if not paper.title and parsed["title"]:
+            paper.title = parsed["title"]
+        if not paper.authors and parsed["authors"]:
+            paper.authors = parsed["authors"]
+        if not paper.year and parsed["year"]:
+            paper.year = parsed["year"]
 
     paper.touch()
     return paper

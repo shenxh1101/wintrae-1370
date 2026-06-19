@@ -1,57 +1,14 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "papers": {
-    "65740a9b21e4653d082954888b3798544928a87512a28930af8ea809ae99c043": {
-      "file_path": "D:\\TraeProjects\\1370\\test_papers\\2023_Smith_Machine Learning Survey_1.pdf",
-      "file_name": "2023_Smith_Machine Learning Survey_1.pdf",
-      "file_size": 431,
-      "file_hash": "65740a9b21e4653d082954888b3798544928a87512a28930af8ea809ae99c043",
-      "title": "Machine Learning Survey",
+    "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf",
+      "file_name": "paper1_copy.pdf",
+      "file_size": 495,
+      "file_hash": "87cad7e935c82cf0b3f51c70b062f83c7f864ec167d9d778b45c9e8314e82245",
+      "title": "Deep Learning for NLP",
       "authors": [
-        "Smith"
-      ],
-      "year": 2023,
-      "doi": null,
-      "journal": null,
-      "keywords": [],
-      "tags": [],
-      "read_status": "unread",
-      "topics": [],
-      "added_at": "2026-06-20T06:02:58.036307",
-      "updated_at": "2026-06-20T06:04:45.356392",
-      "notes": ""
-    },
-    "72a763f8644aece44ed6bad701b57a9a95911e8f9d223bfac2ee7351159d785a": {
-      "file_path": "D:\\TraeProjects\\1370\\test_papers\\n.d._Author_paper1.pdf",
-      "file_name": "n.d._Author_paper1.pdf",
-      "file_size": 513,
-      "file_hash": "72a763f8644aece44ed6bad701b57a9a95911e8f9d223bfac2ee7351159d785a",
-      "title": "paper1",
-      "authors": [
-        "Test Author"
-      ],
-      "year": null,
-      "doi": null,
-      "journal": null,
-      "keywords": [],
-      "tags": [
-        "important",
-        "deep learning"
-      ],
-      "read_status": "unread",
-      "topics": [],
-      "added_at": "2026-06-20T06:02:58.037509",
-      "updated_at": "2026-06-20T06:04:45.359050",
-      "notes": ""
-    },
-    "aab38761d8603b1f836521bfcb4353487c7a2de06946eeb8bf205fa676b9d9ab": {
-      "file_path": "D:\\TraeProjects\\1370\\test_papers\\topic1\\n.d._Author_sub paper.pdf",
-      "file_name": "n.d._Author_sub paper.pdf",
-      "file_size": 492,
-      "file_hash": "aab38761d8603b1f836521bfcb4353487c7a2de06946eeb8bf205fa676b9d9ab",
-      "title": "sub paper",
-      "authors": [
-        "Test Author"
+        "Smith John"
       ],
       "year": null,
       "doi": null,
@@ -59,9 +16,75 @@
       "keywords": [],
       "tags": [],
       "read_status": "unread",
+      "topics": [
+        "AI"
+      ],
+      "added_at": "2026-06-20T06:15:00.973039",
+      "updated_at": "2026-06-20T06:16:10.210855",
+      "notes": ""
+    },
+    "D:\\TraeProjects\\1370\\test_papers\\paper1.pdf": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\paper1.pdf",
+      "file_name": "paper1.pdf",
+      "file_size": 495,
+      "file_hash": "87cad7e935c82cf0b3f51c70b062f83c7f864ec167d9d778b45c9e8314e82245",
+      "title": "Deep Learning for NLP",
+      "authors": [
+        "Smith John"
+      ],
+      "year": null,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
+      "topics": [
+        "AI"
+      ],
+      "added_at": "2026-06-20T06:15:00.974558",
+      "updated_at": "2026-06-20T06:16:10.211361",
+      "notes": ""
+    },
+    "D:\\TraeProjects\\1370\\test_papers\\paper2.pdf": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\paper2.pdf",
+      "file_name": "paper2.pdf",
+      "file_size": 490,
+      "file_hash": "7236fe3c35deeb71701c5dbdba5d069c50680593185d2c84484283878c269d43",
+      "title": "Computer Vision Survey",
+      "authors": [
+        "Wang Li"
+      ],
+      "year": null,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
+      "topics": [
+        "CV"
+      ],
+      "added_at": "2026-06-20T06:15:00.977117",
+      "updated_at": "2026-06-20T06:16:10.536385",
+      "notes": ""
+    },
+    "D:\\TraeProjects\\1370\\test_papers\\topic1\\sub_paper.pdf": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\topic1\\sub_paper.pdf",
+      "file_name": "sub_paper.pdf",
+      "file_size": 490,
+      "file_hash": "47147d56bc536d60d92f6ff51fb9834426500c6e8b370e8852e62f14362f2e1b",
+      "title": "Topic Specific Study",
+      "authors": [
+        "Zhang Wei"
+      ],
+      "year": null,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
       "topics": [],
-      "added_at": "2026-06-20T06:02:58.039029",
-      "updated_at": "2026-06-20T06:04:45.362100",
+      "added_at": "2026-06-20T06:15:00.978130",
+      "updated_at": "2026-06-20T06:15:00.979633",
       "notes": ""
     }
   }

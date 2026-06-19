@@ -34,6 +34,7 @@ def tag_command(
         "topics": [],
         "papers": [],
         "errors": [],
+        "active_filters": _build_filter_desc(filter_tag, filter_topic, filter_status, file_filter),
     }
 
     dir_path = Path(directory).resolve()
@@ -61,49 +62,31 @@ def tag_command(
     papers = _filter_papers(db, filter_tag, filter_topic, filter_status, file_filter)
 
     if not papers:
-        result["errors"].append("没有匹配的文献")
+        result["errors"].append(f"没有匹配的文献 (筛选条件: {result['active_filters']})")
         return result
 
     log_dir = dir_path / ".litman" / "logs"
     op_log = OperationLog(str(log_dir))
 
+    db_snapshot = db.snapshot() if not dry_run else None
+
     for paper in papers:
         updated = False
-        paper_dict_before = paper.to_dict()
-
-        if add_tags:
-            for tag in add_tags:
-                if tag not in paper.tags:
-                    paper.tags.append(tag)
-                    updated = True
-
-        if remove_tags:
-            original_len = len(paper.tags)
-            paper.tags = [t for t in paper.tags if t not in remove_tags]
-            if len(paper.tags) != original_len:
-                updated = True
-
-        if set_status and paper.read_status != set_status:
-            paper.read_status = set_status
+        changes = _apply_metadata_changes(
+            paper, add_tags, remove_tags, set_status,
+            set_doi, set_journal, add_keywords, add_topic,
+        )
+        if changes:
             updated = True
-
-        if set_doi is not None and paper.doi != set_doi:
-            paper.doi = set_doi
-            updated = True
-
-        if set_journal is not None and paper.journal != set_journal:
-            paper.journal = set_journal
-            updated = True
-
-        if add_keywords:
-            for kw in add_keywords:
-                if kw not in paper.keywords:
-                    paper.keywords.append(kw)
-                    updated = True
-
-        if add_topic and add_topic not in paper.topics:
-            paper.topics.append(add_topic)
-            updated = True
+            for field, old_val, new_val in changes:
+                if not dry_run:
+                    op_log.log_metadata_update(
+                        file_path=paper.file_path,
+                        file_name=paper.file_name,
+                        field=field,
+                        old_value=old_val,
+                        new_value=new_val,
+                    )
 
         if move_to_topic and paper.topics:
             moved = _move_paper_to_topic(paper, paper.topics[0], dir_path, op_log, dry_run)
@@ -122,12 +105,90 @@ def tag_command(
                 db.update_paper(paper)
 
     if not dry_run and op_log.has_pending_operations:
-        op_log.commit(description=f"更新 {result['updated']} 个文献的标签/元数据")
+        op_log.commit(
+            description=f"更新 {result['updated']} 个文献的标签/元数据",
+            command="tag",
+            db_snapshot=db_snapshot,
+        )
 
     if not dry_run:
         db.save()
 
     return result
+
+
+def _apply_metadata_changes(
+    paper: Paper,
+    add_tags: Optional[List[str]],
+    remove_tags: Optional[List[str]],
+    set_status: Optional[str],
+    set_doi: Optional[str],
+    set_journal: Optional[str],
+    add_keywords: Optional[List[str]],
+    add_topic: Optional[str],
+) -> List[tuple]:
+    changes = []
+
+    if add_tags:
+        for tag in add_tags:
+            if tag not in paper.tags:
+                old = list(paper.tags)
+                paper.tags.append(tag)
+                changes.append(("tags", old, list(paper.tags)))
+
+    if remove_tags:
+        old = list(paper.tags)
+        new_tags = [t for t in paper.tags if t not in remove_tags]
+        if len(new_tags) != len(old):
+            paper.tags = new_tags
+            changes.append(("tags", old, list(paper.tags)))
+
+    if set_status and paper.read_status != set_status:
+        old = paper.read_status
+        paper.read_status = set_status
+        changes.append(("read_status", old, set_status))
+
+    if set_doi is not None and paper.doi != set_doi:
+        old = paper.doi
+        paper.doi = set_doi
+        changes.append(("doi", old, set_doi))
+
+    if set_journal is not None and paper.journal != set_journal:
+        old = paper.journal
+        paper.journal = set_journal
+        changes.append(("journal", old, set_journal))
+
+    if add_keywords:
+        for kw in add_keywords:
+            if kw not in paper.keywords:
+                old = list(paper.keywords)
+                paper.keywords.append(kw)
+                changes.append(("keywords", old, list(paper.keywords)))
+
+    if add_topic and add_topic not in paper.topics:
+        old = list(paper.topics)
+        paper.topics.append(add_topic)
+        changes.append(("topics", old, list(paper.topics)))
+
+    return changes
+
+
+def _build_filter_desc(
+    filter_tag: Optional[str],
+    filter_topic: Optional[str],
+    filter_status: Optional[str],
+    file_filter: Optional[str],
+) -> str:
+    parts = []
+    if filter_tag:
+        parts.append(f"tag={filter_tag}")
+    if filter_topic:
+        parts.append(f"topic={filter_topic}")
+    if filter_status:
+        parts.append(f"status={filter_status}")
+    if file_filter:
+        parts.append(f"keyword={file_filter}")
+    return ", ".join(parts) if parts else "无筛选"
 
 
 def _filter_papers(
@@ -176,7 +237,7 @@ def _move_paper_to_topic(
     if not dry_run:
         topic_dir.mkdir(parents=True, exist_ok=True)
         shutil.move(str(old_path), str(new_path))
-        op_log.log_file_move(str(old_path), str(new_path))
+        op_log.log_file_move(str(old_path), str(new_path), file_name=old_path.name)
         paper.file_path = str(new_path.resolve())
         paper.file_name = new_path.name
 

@@ -54,6 +54,8 @@ def rename_command(
         result["skipped"] = len(papers) - len(planned["operations"])
         return result
 
+    db_snapshot = db.snapshot()
+
     confirmed_ops = _resolve_conflicts(planned["operations"], planned["conflicts"], resolve_conflicts)
 
     for op in confirmed_ops:
@@ -64,7 +66,11 @@ def rename_command(
             result["errors"].append(f"重命名失败 {op['old_path']}: {str(e)}")
 
     if op_log.has_pending_operations:
-        op_log.commit(description=f"重命名 {result['renamed']} 个文件")
+        op_log.commit(
+            description=f"重命名 {result['renamed']} 个文件",
+            command="rename",
+            db_snapshot=db_snapshot,
+        )
 
     db.save()
     return result
@@ -113,11 +119,10 @@ def _plan_renames(
                 "papers": paper_list,
             })
 
-    if _target_exists_on_disk(target_paths):
-        existing_conflicts = _check_disk_conflicts(target_paths)
-        for conflict in existing_conflicts:
-            if not any(c["target_path"] == conflict["target_path"] for c in conflicts):
-                conflicts.append(conflict)
+    existing_conflicts = _check_disk_conflicts(target_paths)
+    for conflict in existing_conflicts:
+        if not any(c["target_path"] == conflict["target_path"] for c in conflicts):
+            conflicts.append(conflict)
 
     return {
         "operations": operations,
@@ -125,24 +130,16 @@ def _plan_renames(
     }
 
 
-def _target_exists_on_disk(target_paths: Dict[str, List[Paper]]) -> bool:
-    for target_path in target_paths:
-        if Path(target_path).exists():
-            return True
-    return False
-
-
 def _check_disk_conflicts(target_paths: Dict[str, List[Paper]]) -> List[Dict[str, Any]]:
     conflicts = []
     for target_path, paper_list in target_paths.items():
         path = Path(target_path)
         if path.exists():
-            existing_file_hash = None
-            for paper in paper_list:
-                if str(Path(paper.file_path).resolve()) == str(path.resolve()):
-                    existing_file_hash = paper.file_hash
-                    break
-            if existing_file_hash is None:
+            is_own_file = any(
+                str(Path(p.file_path).resolve()) == str(path.resolve())
+                for p in paper_list
+            )
+            if not is_own_file:
                 conflicts.append({
                     "target_path": target_path,
                     "papers": paper_list,
@@ -197,6 +194,10 @@ def _execute_rename(
     new_path.parent.mkdir(parents=True, exist_ok=True)
 
     shutil.move(str(old_path), str(new_path))
-    op_log.log_file_rename(str(old_path), str(new_path))
+    action = op.get("action", "rename")
+    if action == "move":
+        op_log.log_file_move(str(old_path), str(new_path), file_name=old_path.name)
+    else:
+        op_log.log_file_rename(str(old_path), str(new_path), file_name=old_path.name)
 
     db.update_paper_path(str(old_path), str(new_path))

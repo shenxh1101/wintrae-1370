@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
+from ..database import PaperDatabase
+from ..models import Paper
 from ..operation_log import OperationLog
 
 
@@ -17,6 +19,7 @@ def rollback_command(
         "actions": [],
         "logs": [],
         "message": "",
+        "index_restored": False,
     }
 
     dir_path = Path(directory).resolve()
@@ -37,6 +40,14 @@ def rollback_command(
     result["message"] = rollback_result["message"]
     result["actions"] = rollback_result["actions"]
 
+    if rollback_result.get("db_snapshot") and rollback_result["success"]:
+        db = PaperDatabase.for_directory(str(dir_path))
+        db.load()
+        db.restore_snapshot(rollback_result["db_snapshot"])
+        db.save()
+        result["index_restored"] = True
+        result["message"] += " (索引已从快照恢复)"
+
     return result
 
 
@@ -50,12 +61,16 @@ def format_rollback_result(result: Dict[str, Any]) -> str:
             desc = log.get("description", "无描述")
             ts = log.get("timestamp", "")
             count = log.get("operations_count", 0)
-            lines.append(f"  [{log['id']}] {desc}")
-            lines.append(f"      {ts} · {count} 个操作")
+            snapshot = " [有快照]" if log.get("has_snapshot") else ""
+            lines.append(f"  [{log['id']}] {desc}{snapshot}")
+            lines.append(f"      {ts} | {count} 个操作")
             lines.append("")
         return "\n".join(lines)
 
     lines.append(result.get("message", ""))
+
+    if result.get("index_restored"):
+        lines.append("[索引已恢复] 数据库已从快照还原到操作前的状态")
 
     if result.get("actions"):
         lines.append("")

@@ -4,6 +4,7 @@ from .tag import tag_command
 from .check import check_command
 from .export import export_command
 from .rollback import rollback_command
+from .history import history_command
 
 __all__ = [
     "scan_command",
@@ -12,4 +13,5 @@ __all__ = [
     "check_command",
     "export_command",
     "rollback_command",
+    "history_command",
 ]

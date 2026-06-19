@@ -10,6 +10,8 @@ endobj
 2 0 obj
 <<
 /Producer (pypdf)
+/Title (Deep\040Learning\040for\040NLP)
+/Author (Smith\040John)
 >>
 endobj
 3 0 obj
@@ -32,8 +34,8 @@ xref
 0000000000 65535 f 
 0000000015 00000 n 
 0000000074 00000 n 
-0000000113 00000 n 
-0000000162 00000 n 
+0000000177 00000 n 
+0000000226 00000 n 
 trailer
 <<
 /Size 5
@@ -41,5 +43,5 @@ trailer
 /Info 2 0 R
 >>
 startxref
-256
+320
 %%EOF

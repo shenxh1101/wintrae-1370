@@ -77,32 +77,32 @@ def _process_pdf(
     no_extract: bool = False,
 ) -> Dict[str, Any]:
     paper = Paper.from_file(file_path)
-    existing = db.get_paper(paper.file_hash)
+    existing = db.find_by_path(file_path)
 
-    if existing and existing.file_path == paper.file_path:
-        return {
-            "paper": existing,
-            "status": "skipped",
-            "reason": "已存在且路径未变",
-        }
+    if existing:
+        if existing.file_path == paper.file_path and existing.file_hash == paper.file_hash:
+            return {
+                "paper": existing,
+                "status": "skipped",
+                "reason": "已存在且内容未变",
+            }
+        if existing.file_hash != paper.file_hash:
+            if not no_extract:
+                paper = enrich_paper(paper, use_filename=True)
+            return {
+                "paper": paper,
+                "status": "updated",
+                "reason": "文件内容已变化",
+            }
 
     if not no_extract:
         paper = enrich_paper(paper, use_filename=True)
 
     if existing:
-        if existing.file_path != paper.file_path:
-            existing.file_path = paper.file_path
-            existing.file_name = paper.file_name
-            existing.touch()
-            return {
-                "paper": existing,
-                "status": "updated",
-                "reason": "路径已更新",
-            }
         return {
-            "paper": existing,
-            "status": "skipped",
-            "reason": "已存在",
+            "paper": paper,
+            "status": "updated",
+            "reason": "路径已更新",
         }
 
     return {

@@ -16,6 +16,7 @@ from .commands.tag import tag_command
 from .commands.check import check_command, format_check_report
 from .commands.export import export_command
 from .commands.rollback import rollback_command, format_rollback_result
+from .commands.history import history_command, format_history_list, format_history_detail
 from .models import READ_STATUSES
 
 
@@ -209,7 +210,6 @@ def tag(directory, add_tag, remove_tag, status, doi, journal, keyword, topic,
         if result["tags"]:
             console.print("所有标签:")
             for t in result["tags"]:
-                count = len([p for p in []])  # TODO: show count
                 console.print(f"  - {t}")
         else:
             console.print("[dim]暂无标签[/dim]")
@@ -294,7 +294,9 @@ def export(directory, output, fmt, filter_tag, filter_topic, filter_status, grou
         sys.exit(1)
 
     if result["exported"] > 0:
-        console.print(f"[green]已导出 {result['exported']} 篇文献到 {result['output']}[/green]")
+        filters = result.get("active_filters", "")
+        filter_note = f" (筛选: {filters})" if filters and filters != "无筛选" else ""
+        console.print(f"[green]已导出 {result['exported']} 篇文献到 {result['output']}{filter_note}[/green]")
     else:
         for err in result["errors"]:
             console.print(f"[yellow]提示:[/yellow] {err}")
@@ -321,6 +323,33 @@ def rollback(directory, log_id, list_logs, limit):
         console.print(Panel(output, title="回滚操作", border_style="green"))
     else:
         console.print(f"[red]回滚失败:[/red] {result.get('message', '')}")
+
+
+@cli.command(help="查看操作历史记录")
+@click.argument("directory", type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.option("--detail", "-d", "detail_id", default=None, help="查看指定操作 ID 的详情")
+@click.option("--limit", "-n", default=20, type=int, help="显示记录数量")
+def history(directory, detail_id, limit):
+    directory = _resolve_directory(directory)
+
+    result = history_command(
+        directory=directory,
+        limit=limit,
+        detail_id=detail_id,
+    )
+
+    if not result["success"]:
+        for err in result["errors"]:
+            console.print(f"[red]错误:[/red] {err}")
+        sys.exit(1)
+
+    if result.get("detail"):
+        detail = result["detail"]
+        output = format_history_detail(detail)
+        console.print(Panel(output, title=f"操作详情 [{detail.get('id', '?')}]", border_style="cyan"))
+    else:
+        output = format_history_list(result.get("logs", []))
+        console.print(Panel(output, title="操作历史", border_style="cyan"))
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional
 
 from ..database import PaperDatabase
 from ..models import Paper, READ_STATUSES
+from ..operation_log import OperationLog
 
 
 def export_command(
@@ -18,11 +19,14 @@ def export_command(
     filter_status: Optional[str] = None,
     group_by_topic: bool = False,
 ) -> Dict[str, Any]:
+    active_filters = _build_filter_desc(filter_tag, filter_topic, filter_status)
+
     result = {
         "success": True,
         "output": output,
         "format": format,
         "exported": 0,
+        "active_filters": active_filters,
         "errors": [],
     }
 
@@ -38,15 +42,17 @@ def export_command(
     papers = _filter_papers(db, filter_tag, filter_topic, filter_status)
 
     if not papers:
-        result["errors"].append("没有匹配的文献可导出")
+        result["errors"].append(
+            f"没有匹配的文献可导出 (筛选条件: {active_filters})"
+        )
         return result
 
     if format == "bibtex":
         content = _export_bibtex(papers, group_by_topic)
     elif format == "csv":
-        content = _export_csv(papers)
+        content = _export_csv(papers, db, group_by_topic)
     elif format == "reading_list":
-        content = _export_reading_list(papers, group_by_topic)
+        content = _export_reading_list(papers, db, group_by_topic)
     else:
         result["success"] = False
         result["errors"].append(f"不支持的导出格式: {format}")
@@ -65,8 +71,29 @@ def export_command(
     except IOError as e:
         result["success"] = False
         result["errors"].append(f"写入文件失败: {str(e)}")
+        return result
+
+    log_dir = dir_path / ".litman" / "logs"
+    op_log = OperationLog(str(log_dir))
+    op_log.log_export(format=format, output_path=str(output_path), exported_count=len(papers))
+    op_log.commit(description=f"导出 {len(papers)} 篇文献 ({format})", command="export")
 
     return result
+
+
+def _build_filter_desc(
+    filter_tag: Optional[str],
+    filter_topic: Optional[str],
+    filter_status: Optional[str],
+) -> str:
+    parts = []
+    if filter_tag:
+        parts.append(f"tag={filter_tag}")
+    if filter_topic:
+        parts.append(f"topic={filter_topic}")
+    if filter_status:
+        parts.append(f"status={filter_status}")
+    return ", ".join(parts) if parts else "无筛选"
 
 
 def _filter_papers(
@@ -89,23 +116,34 @@ def _filter_papers(
     return sorted(papers, key=lambda p: (p.year or 0, p.title or ""))
 
 
+def _group_by_topic(papers: List[Paper]) -> Dict[str, List[Paper]]:
+    topic_groups: Dict[str, List[Paper]] = {}
+    for paper in papers:
+        if paper.topics:
+            topic = paper.topics[0]
+        else:
+            topic = "未分类"
+        if topic not in topic_groups:
+            topic_groups[topic] = []
+        topic_groups[topic].append(paper)
+    return topic_groups
+
+
+def _get_missing_fields(paper: Paper) -> List[str]:
+    fields = ["title", "authors", "year", "doi", "journal", "keywords"]
+    missing = []
+    for field in fields:
+        value = getattr(paper, field, None)
+        if value is None or value == "" or value == []:
+            missing.append(field)
+    return missing
+
+
 def _export_bibtex(papers: List[Paper], group_by_topic: bool = False) -> str:
     entries = []
 
     if group_by_topic:
-        topic_groups: Dict[str, List[Paper]] = {}
-        topic_groups["未分类"] = []
-
-        for paper in papers:
-            if paper.topics:
-                topic = paper.topics[0]
-            else:
-                topic = "未分类"
-            if topic not in topic_groups:
-                topic_groups[topic] = []
-            topic_groups[topic].append(paper)
-
-        for topic, topic_papers in topic_groups.items():
+        for topic, topic_papers in _group_by_topic(papers).items():
             entries.append(f"% ===== {topic} =====\n")
             for paper in topic_papers:
                 entries.append(_paper_to_bibtex(paper))
@@ -163,62 +201,65 @@ def _generate_bibtex_key(paper: Paper) -> str:
     return f"{last_name}{year}_{first_word}"
 
 
-def _export_csv(papers: List[Paper]) -> str:
+def _export_csv(papers: List[Paper], db: PaperDatabase, group_by_topic: bool = False) -> str:
     import io
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow([
-        "文件名",
-        "标题",
-        "作者",
-        "年份",
-        "DOI",
-        "期刊",
-        "关键词",
-        "标签",
-        "课题",
-        "阅读状态",
-        "文件路径",
-    ])
+    header = [
+        "课题", "文件名", "标题", "作者", "年份",
+        "DOI", "期刊", "关键词", "标签", "阅读状态",
+        "缺失元数据", "文件路径",
+    ]
+    writer.writerow(header)
 
-    for paper in papers:
-        writer.writerow([
-            paper.file_name,
-            paper.title or "",
-            "; ".join(paper.authors),
-            paper.year or "",
-            paper.doi or "",
-            paper.journal or "",
-            "; ".join(paper.keywords),
-            "; ".join(paper.tags),
-            "; ".join(paper.topics),
-            paper.read_status,
-            paper.file_path,
-        ])
+    if group_by_topic:
+        for topic, topic_papers in _group_by_topic(papers).items():
+            for paper in topic_papers:
+                missing = _get_missing_fields(paper)
+                writer.writerow([
+                    topic,
+                    paper.file_name,
+                    paper.title or "",
+                    "; ".join(paper.authors),
+                    paper.year or "",
+                    paper.doi or "",
+                    paper.journal or "",
+                    "; ".join(paper.keywords),
+                    "; ".join(paper.tags),
+                    paper.read_status,
+                    "; ".join(missing) if missing else "",
+                    paper.file_path,
+                ])
+    else:
+        for paper in papers:
+            topic = paper.topics[0] if paper.topics else ""
+            missing = _get_missing_fields(paper)
+            writer.writerow([
+                topic,
+                paper.file_name,
+                paper.title or "",
+                "; ".join(paper.authors),
+                paper.year or "",
+                paper.doi or "",
+                paper.journal or "",
+                "; ".join(paper.keywords),
+                "; ".join(paper.tags),
+                paper.read_status,
+                "; ".join(missing) if missing else "",
+                paper.file_path,
+            ])
 
     return output.getvalue()
 
 
-def _export_reading_list(papers: List[Paper], group_by_topic: bool = False) -> str:
+def _export_reading_list(papers: List[Paper], db: PaperDatabase, group_by_topic: bool = False) -> str:
     lines = []
     lines.append("# 阅读书单")
     lines.append("")
 
     if group_by_topic:
-        topic_groups: Dict[str, List[Paper]] = {}
-        topic_groups["未分类"] = []
-
-        for paper in papers:
-            if paper.topics:
-                topic = paper.topics[0]
-            else:
-                topic = "未分类"
-            if topic not in topic_groups:
-                topic_groups[topic] = []
-            topic_groups[topic].append(paper)
-
-        for topic, topic_papers in topic_groups.items():
+        for topic, topic_papers in _group_by_topic(papers).items():
             lines.append(f"## {topic}")
             lines.append("")
             for i, paper in enumerate(topic_papers, 1):
@@ -236,10 +277,10 @@ def _format_reading_entry(paper: Paper) -> str:
     parts = []
 
     status_icon = {
-        "unread": "⬜",
-        "reading": "📖",
-        "read": "✅",
-    }.get(paper.read_status, "⬜")
+        "unread": "[ ]",
+        "reading": "[~]",
+        "read": "[x]",
+    }.get(paper.read_status, "[ ]")
 
     title = paper.title or paper.file_name
     authors = ", ".join(paper.authors[:3]) if paper.authors else "Unknown"
@@ -257,5 +298,9 @@ def _format_reading_entry(paper: Paper) -> str:
     if paper.tags:
         tags = " ".join(f"#{tag}" for tag in paper.tags)
         parts.append(f"   {tags}")
+
+    missing = _get_missing_fields(paper)
+    if missing:
+        parts.append(f"   [缺失: {', '.join(missing)}]")
 
     return "\n".join(parts)
