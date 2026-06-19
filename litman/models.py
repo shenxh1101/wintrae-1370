@@ -32,6 +32,8 @@ class Paper:
     added_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     notes: str = ""
+    rating: Optional[int] = None
+    due_date: Optional[str] = None
 
     @classmethod
     def from_file(cls, file_path: str) -> "Paper":

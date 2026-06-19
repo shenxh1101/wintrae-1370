@@ -39,14 +39,17 @@ def rollback_command(
     result["success"] = rollback_result["success"]
     result["message"] = rollback_result["message"]
     result["actions"] = rollback_result["actions"]
+    result["failed_files"] = rollback_result.get("failed_files", [])
+    result["file_ops_success"] = rollback_result.get("file_ops_success", True)
 
-    if rollback_result.get("db_snapshot") and rollback_result["success"]:
+    if rollback_result.get("db_snapshot") and rollback_result["file_ops_success"]:
         db = PaperDatabase.for_directory(str(dir_path))
         db.load()
         db.restore_snapshot(rollback_result["db_snapshot"])
         db.save()
         result["index_restored"] = True
-        result["message"] += " (索引已从快照恢复)"
+        if result["success"]:
+            result["message"] += " (索引已从快照恢复)"
 
     return result
 
@@ -78,5 +81,13 @@ def format_rollback_result(result: Dict[str, Any]) -> str:
         for action in result["actions"]:
             status = "[OK]" if action.get("success") else "[FAIL]"
             lines.append(f"  {status} [{action['type']}] {action.get('message', '')}")
+
+    if result.get("failed_files"):
+        lines.append("")
+        lines.append("[警告] 以下文件回滚失败，索引未恢复:")
+        for fail in result["failed_files"]:
+            lines.append(f"  - [{fail['type']}] {fail['file']}: {fail['error']}")
+        lines.append("")
+        lines.append("请手动处理这些文件后，再次执行回滚命令。")
 
     return "\n".join(lines)

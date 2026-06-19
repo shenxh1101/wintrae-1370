@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 from ..database import PaperDatabase
 from ..metadata import scan_pdfs, enrich_paper
 from ..models import Paper
+from ..operation_log import OperationLog
 
 
 def scan_command(
@@ -45,6 +46,10 @@ def scan_command(
     db = PaperDatabase.for_directory(str(dir_path))
     db.load()
 
+    log_dir = dir_path / ".litman" / "logs"
+    op_log = OperationLog(str(log_dir))
+    db_snapshot = db.snapshot() if not dry_run else None
+
     for pdf_path in pdf_files:
         try:
             paper_info = _process_pdf(pdf_path, db, no_extract)
@@ -60,12 +65,40 @@ def scan_command(
             result["papers"].append(paper_info)
 
             if not dry_run and status in ("new", "updated"):
-                db.add_paper(paper_info["paper"])
+                paper = paper_info["paper"]
+                db.add_paper(paper)
+                if status == "new":
+                    op_log.log_metadata_update(
+                        file_path=paper.file_path,
+                        file_name=paper.file_name,
+                        field="index",
+                        old_value=None,
+                        new_value="added",
+                    )
+                else:
+                    op_log.log_metadata_update(
+                        file_path=paper.file_path,
+                        file_name=paper.file_name,
+                        field="index",
+                        old_value="existing",
+                        new_value="updated",
+                    )
 
         except Exception as e:
             result["errors"].append(f"处理失败 {pdf_path}: {str(e)}")
 
     if not dry_run:
+        op_log.log_scan(
+            new_count=result["new"],
+            updated_count=result["updated"],
+            skipped_count=result["skipped"],
+        )
+        if result["new"] > 0 or result["updated"] > 0:
+            op_log.commit(
+                description=f"扫描目录，新增 {result['new']} 篇，更新 {result['updated']} 篇",
+                command="scan",
+                db_snapshot=db_snapshot,
+            )
         db.save()
 
     return result

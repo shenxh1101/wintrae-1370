@@ -17,6 +17,8 @@ from .commands.check import check_command, format_check_report
 from .commands.export import export_command
 from .commands.rollback import rollback_command, format_rollback_result
 from .commands.history import history_command, format_history_list, format_history_detail
+from .commands.search import search_command, format_search_results
+from .commands.import_ import import_command, format_import_result
 from .models import READ_STATUSES
 
 
@@ -161,6 +163,10 @@ def rename(directory, pattern, dry_run, conflict, by_topic):
 @click.option("--journal", "-j", help="设置期刊名")
 @click.option("--keyword", "-k", multiple=True, help="添加关键词（可多次指定）")
 @click.option("--topic", help="添加课题分类")
+@click.option("--notes", help="设置笔记内容（覆盖）")
+@click.option("--append-notes", help="追加笔记内容（换行）")
+@click.option("--rating", type=click.IntRange(0, 5), help="设置评分 0-5")
+@click.option("--due", help="设置截止日期 (YYYY-MM-DD)")
 @click.option("--filter-tag", help="按标签筛选文献")
 @click.option("--filter-topic", help="按课题筛选文献")
 @click.option("--filter-status", type=click.Choice(READ_STATUSES), help="按阅读状态筛选")
@@ -170,6 +176,7 @@ def rename(directory, pattern, dry_run, conflict, by_topic):
 @click.option("--move-to-topic", is_flag=True, help="移动文件到课题目录")
 @click.option("--dry-run", "-n", is_flag=True, help="预演模式")
 def tag(directory, add_tag, remove_tag, status, doi, journal, keyword, topic,
+        notes, append_notes, rating, due,
         filter_tag, filter_topic, filter_status, filter, list_tags, list_topics,
         move_to_topic, dry_run):
     directory = _resolve_directory(directory)
@@ -191,6 +198,10 @@ def tag(directory, add_tag, remove_tag, status, doi, journal, keyword, topic,
         set_journal=journal,
         add_keywords=add_keywords,
         add_topic=topic,
+        set_notes=notes,
+        append_notes=append_notes,
+        set_rating=rating,
+        set_due=due,
         filter_tag=filter_tag,
         filter_topic=filter_topic,
         filter_status=filter_status,
@@ -350,6 +361,96 @@ def history(directory, detail_id, limit):
     else:
         output = format_history_list(result.get("logs", []))
         console.print(Panel(output, title="操作历史", border_style="cyan"))
+
+
+@cli.command(help="按条件检索文献")
+@click.argument("directory", type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.option("--title", help="按标题模糊匹配")
+@click.option("--author", help="按作者模糊匹配")
+@click.option("--year-min", type=int, help="最小年份")
+@click.option("--year-max", type=int, help="最大年份")
+@click.option("--doi", help="按 DOI 匹配")
+@click.option("--journal", help="按期刊模糊匹配")
+@click.option("--keyword", "-k", multiple=True, help="按关键词匹配（可多次指定）")
+@click.option("--topic", help="按课题匹配")
+@click.option("--status", type=click.Choice(READ_STATUSES), help="按阅读状态匹配")
+@click.option("--tag", help="按标签匹配")
+@click.option("--filter", "fuzzy_filter", help="按文件名/标题模糊匹配")
+def search(directory, title, author, year_min, year_max, doi, journal, keyword,
+           topic, status, tag, fuzzy_filter):
+    directory = _resolve_directory(directory)
+
+    keywords = list(keyword) if keyword else None
+
+    result = search_command(
+        directory=directory,
+        title=title,
+        author=author,
+        year_min=year_min,
+        year_max=year_max,
+        doi=doi,
+        journal=journal,
+        keyword=keywords,
+        topic=topic,
+        status=status,
+        tag=tag,
+        file_filter=fuzzy_filter,
+    )
+
+    if not result["success"]:
+        for err in result["errors"]:
+            console.print(f"[red]错误:[/red] {err}")
+        sys.exit(1)
+
+    if result["papers"]:
+        output = format_search_results(result)
+        console.print(Panel(output, title=f"检索结果 ({result['matched']} 篇)", border_style="magenta"))
+    else:
+        for err in result["errors"]:
+            console.print(f"[yellow]提示:[/yellow] {err}")
+
+
+@cli.command(name="import", help="从 BibTeX 或 CSV 导入元数据")
+@click.argument("directory", type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.option("--input", "-i", "input_file", required=True, help="导入文件路径")
+@click.option("--format", "-f", "fmt", type=click.Choice(["bibtex", "csv"]),
+              default="bibtex", help="导入格式，默认: bibtex")
+@click.option("--match-by", type=click.Choice(["filename", "doi", "both"]),
+              default="filename", help="匹配方式，默认: filename")
+@click.option("--overwrite", is_flag=True, help="覆盖已有非空字段（默认仅补全空字段")
+@click.option("--dry-run", "-n", is_flag=True, help="预演模式，不实际修改")
+def import_cmd(directory, input_file, fmt, match_by, overwrite, dry_run):
+    directory = _resolve_directory(directory)
+
+    if dry_run:
+        console.print("[yellow]预演模式：不会实际修改索引[/yellow]")
+        console.print()
+
+    result = import_command(
+        directory=directory,
+        input_file=input_file,
+        fmt=fmt,
+        match_by=match_by,
+        overwrite=overwrite,
+        dry_run=dry_run,
+    )
+
+    if not result["success"]:
+        for err in result["errors"]:
+            console.print(f"[red]错误:[/red] {err}")
+        sys.exit(1)
+
+    output = format_import_result(result)
+    style = "green" if result["updated"] > 0 else "yellow"
+    console.print(Panel(output, title="导入结果", border_style=style))
+
+    if dry_run:
+        console.print(f"[yellow]预演完毕，共 {result['matched']} 条匹配，{result['updated']} 条将更新[/yellow]")
+    else:
+        if result["updated"] > 0:
+            console.print(f"[green]完成：更新了 {result['updated']} 篇文献[/green]")
+        else:
+            console.print("[dim]没有更新任何文献[/dim]")
 
 
 if __name__ == "__main__":

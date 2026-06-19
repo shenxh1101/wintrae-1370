@@ -1,0 +1,5 @@
+课题,文件名,标题,作者,年份,DOI,期刊,关键词,标签,阅读状态,评分,截止日期,笔记,缺失元数据,文件路径
+CV,paper2.pdf,Computer Vision Survey,Li Wang,2023,10.1000/csv2,IEEE TPAMI,CV; Deep Learning,,read,,,,,D:\TraeProjects\1370\test_papers\paper2.pdf
+Medicine,sub_paper.pdf,Topic Specific Study,Zhang Wei,2023,10.1000/csv3,Nature,Medical AI,,unread,,,,,D:\TraeProjects\1370\test_papers\topic1\sub_paper.pdf
+NLP,paper1.pdf,Deep Learning for NLP,John Smith,2024,,,,,unread,5,2026-07-31,重点阅读论文，注意创新点,doi; journal; keywords,D:\TraeProjects\1370\test_papers\paper1.pdf
+NLP,paper1_copy.pdf,Deep Learning for NLP,John Smith,2024,,,,,unread,5,2026-07-31,重点阅读论文，注意创新点,doi; journal; keywords,D:\TraeProjects\1370\test_papers\copy\paper1_copy.pdf

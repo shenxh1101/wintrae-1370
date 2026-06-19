@@ -18,6 +18,10 @@ def tag_command(
     set_journal: Optional[str] = None,
     add_keywords: Optional[List[str]] = None,
     add_topic: Optional[str] = None,
+    set_notes: Optional[str] = None,
+    append_notes: Optional[str] = None,
+    set_rating: Optional[int] = None,
+    set_due: Optional[str] = None,
     filter_tag: Optional[str] = None,
     filter_topic: Optional[str] = None,
     filter_status: Optional[str] = None,
@@ -75,6 +79,7 @@ def tag_command(
         changes = _apply_metadata_changes(
             paper, add_tags, remove_tags, set_status,
             set_doi, set_journal, add_keywords, add_topic,
+            set_notes, append_notes, set_rating, set_due,
         )
         if changes:
             updated = True
@@ -126,6 +131,10 @@ def _apply_metadata_changes(
     set_journal: Optional[str],
     add_keywords: Optional[List[str]],
     add_topic: Optional[str],
+    set_notes: Optional[str] = None,
+    append_notes: Optional[str] = None,
+    set_rating: Optional[int] = None,
+    set_due: Optional[str] = None,
 ) -> List[tuple]:
     changes = []
 
@@ -169,6 +178,33 @@ def _apply_metadata_changes(
         old = list(paper.topics)
         paper.topics.append(add_topic)
         changes.append(("topics", old, list(paper.topics)))
+
+    if set_notes is not None:
+        old = paper.notes
+        paper.notes = set_notes
+        changes.append(("notes", old, set_notes))
+
+    if append_notes is not None:
+        old = paper.notes
+        if old:
+            new_notes = f"{old}\n{append_notes}"
+        else:
+            new_notes = append_notes
+        paper.notes = new_notes
+        changes.append(("notes", old, new_notes))
+
+    if set_rating is not None and paper.rating != set_rating:
+        if set_rating < 0 or set_rating > 5:
+            pass
+        else:
+            old = paper.rating
+            paper.rating = set_rating
+            changes.append(("rating", old, set_rating))
+
+    if set_due is not None and paper.due_date != set_due:
+        old = paper.due_date
+        paper.due_date = set_due
+        changes.append(("due_date", old, set_due))
 
     return changes
 

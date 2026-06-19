@@ -1,91 +1,106 @@
 {
   "version": "2.0",
   "papers": {
-    "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf": {
-      "file_path": "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf",
-      "file_name": "paper1_copy.pdf",
-      "file_size": 495,
-      "file_hash": "87cad7e935c82cf0b3f51c70b062f83c7f864ec167d9d778b45c9e8314e82245",
-      "title": "Deep Learning for NLP",
-      "authors": [
-        "Smith John"
-      ],
-      "year": null,
-      "doi": null,
-      "journal": null,
-      "keywords": [],
-      "tags": [],
-      "read_status": "unread",
-      "topics": [
-        "AI"
-      ],
-      "added_at": "2026-06-20T06:15:00.973039",
-      "updated_at": "2026-06-20T06:16:10.210855",
-      "notes": ""
-    },
     "D:\\TraeProjects\\1370\\test_papers\\paper1.pdf": {
       "file_path": "D:\\TraeProjects\\1370\\test_papers\\paper1.pdf",
       "file_name": "paper1.pdf",
-      "file_size": 495,
-      "file_hash": "87cad7e935c82cf0b3f51c70b062f83c7f864ec167d9d778b45c9e8314e82245",
+      "file_size": 552,
+      "file_hash": "8b0ee25d593b9408bf6f09a70cc1a881278f39f8c1bde42cfcb08948ee13ecee",
       "title": "Deep Learning for NLP",
       "authors": [
-        "Smith John"
+        "John Smith"
       ],
-      "year": null,
+      "year": 2024,
       "doi": null,
       "journal": null,
       "keywords": [],
       "tags": [],
       "read_status": "unread",
       "topics": [
-        "AI"
+        "NLP"
       ],
-      "added_at": "2026-06-20T06:15:00.974558",
-      "updated_at": "2026-06-20T06:16:10.211361",
-      "notes": ""
+      "added_at": "2026-06-20T06:44:05.223101",
+      "updated_at": "2026-06-20T06:44:34.945144",
+      "notes": "重点阅读论文，注意创新点",
+      "rating": 5,
+      "due_date": "2026-07-31"
+    },
+    "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\copy\\paper1_copy.pdf",
+      "file_name": "paper1_copy.pdf",
+      "file_size": 552,
+      "file_hash": "8b0ee25d593b9408bf6f09a70cc1a881278f39f8c1bde42cfcb08948ee13ecee",
+      "title": "Deep Learning for NLP",
+      "authors": [
+        "John Smith"
+      ],
+      "year": 2024,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
+      "topics": [
+        "NLP"
+      ],
+      "added_at": "2026-06-20T06:44:05.224098",
+      "updated_at": "2026-06-20T06:44:34.945652",
+      "notes": "重点阅读论文，注意创新点",
+      "rating": 5,
+      "due_date": "2026-07-31"
     },
     "D:\\TraeProjects\\1370\\test_papers\\paper2.pdf": {
       "file_path": "D:\\TraeProjects\\1370\\test_papers\\paper2.pdf",
       "file_name": "paper2.pdf",
-      "file_size": 490,
-      "file_hash": "7236fe3c35deeb71701c5dbdba5d069c50680593185d2c84484283878c269d43",
+      "file_size": 550,
+      "file_hash": "fe5675e99a225ddcd4ae8385402d6ef6531ac890eaea3e59423bc36a5a9a3f18",
       "title": "Computer Vision Survey",
       "authors": [
-        "Wang Li"
+        "Li Wang"
       ],
-      "year": null,
-      "doi": null,
-      "journal": null,
-      "keywords": [],
+      "year": 2023,
+      "doi": "10.1000/csv2",
+      "journal": "IEEE TPAMI",
+      "keywords": [
+        "CV",
+        "Deep Learning"
+      ],
       "tags": [],
-      "read_status": "unread",
+      "read_status": "read",
       "topics": [
         "CV"
       ],
-      "added_at": "2026-06-20T06:15:00.977117",
-      "updated_at": "2026-06-20T06:16:10.536385",
-      "notes": ""
+      "added_at": "2026-06-20T06:44:05.224098",
+      "updated_at": "2026-06-20T06:44:51.175345",
+      "notes": "",
+      "rating": null,
+      "due_date": null
     },
     "D:\\TraeProjects\\1370\\test_papers\\topic1\\sub_paper.pdf": {
       "file_path": "D:\\TraeProjects\\1370\\test_papers\\topic1\\sub_paper.pdf",
       "file_name": "sub_paper.pdf",
-      "file_size": 490,
-      "file_hash": "47147d56bc536d60d92f6ff51fb9834426500c6e8b370e8852e62f14362f2e1b",
+      "file_size": 550,
+      "file_hash": "ee4a4f64455f8b949e546835d5f1d556921e7dd7f83a4e12a5c15771a8b4eb29",
       "title": "Topic Specific Study",
       "authors": [
         "Zhang Wei"
       ],
-      "year": null,
-      "doi": null,
-      "journal": null,
-      "keywords": [],
+      "year": 2023,
+      "doi": "10.1000/csv3",
+      "journal": "Nature",
+      "keywords": [
+        "Medical AI"
+      ],
       "tags": [],
       "read_status": "unread",
-      "topics": [],
-      "added_at": "2026-06-20T06:15:00.978130",
-      "updated_at": "2026-06-20T06:15:00.979633",
-      "notes": ""
+      "topics": [
+        "Medicine"
+      ],
+      "added_at": "2026-06-20T06:44:05.224603",
+      "updated_at": "2026-06-20T06:44:51.176952",
+      "notes": "",
+      "rating": null,
+      "due_date": null
     }
   }
 }

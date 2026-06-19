@@ -5,6 +5,8 @@ from .check import check_command
 from .export import export_command
 from .rollback import rollback_command
 from .history import history_command
+from .search import search_command, format_search_results
+from .import_ import import_command, format_import_result
 
 __all__ = [
     "scan_command",
@@ -14,4 +16,8 @@ __all__ = [
     "export_command",
     "rollback_command",
     "history_command",
+    "search_command",
+    "format_search_results",
+    "import_command",
+    "format_import_result",
 ]

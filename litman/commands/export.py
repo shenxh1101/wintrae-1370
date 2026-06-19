@@ -209,7 +209,7 @@ def _export_csv(papers: List[Paper], db: PaperDatabase, group_by_topic: bool = F
     header = [
         "课题", "文件名", "标题", "作者", "年份",
         "DOI", "期刊", "关键词", "标签", "阅读状态",
-        "缺失元数据", "文件路径",
+        "评分", "截止日期", "笔记", "缺失元数据", "文件路径",
     ]
     writer.writerow(header)
 
@@ -228,6 +228,9 @@ def _export_csv(papers: List[Paper], db: PaperDatabase, group_by_topic: bool = F
                     "; ".join(paper.keywords),
                     "; ".join(paper.tags),
                     paper.read_status,
+                    paper.rating or "",
+                    paper.due_date or "",
+                    paper.notes or "",
                     "; ".join(missing) if missing else "",
                     paper.file_path,
                 ])
@@ -246,6 +249,9 @@ def _export_csv(papers: List[Paper], db: PaperDatabase, group_by_topic: bool = F
                 "; ".join(paper.keywords),
                 "; ".join(paper.tags),
                 paper.read_status,
+                paper.rating or "",
+                paper.due_date or "",
+                paper.notes or "",
                 "; ".join(missing) if missing else "",
                 paper.file_path,
             ])
@@ -286,7 +292,10 @@ def _format_reading_entry(paper: Paper) -> str:
     authors = ", ".join(paper.authors[:3]) if paper.authors else "Unknown"
     year = f"({paper.year})" if paper.year else ""
 
-    parts.append(f"{status_icon} **{title}**")
+    rating_str = f" {'★' * paper.rating}" if paper.rating else ""
+    due_str = f" [截止: {paper.due_date}]" if paper.due_date else ""
+
+    parts.append(f"{status_icon} **{title}**{rating_str}{due_str}")
     parts.append(f"   {authors} {year}")
 
     if paper.journal:
@@ -298,6 +307,12 @@ def _format_reading_entry(paper: Paper) -> str:
     if paper.tags:
         tags = " ".join(f"#{tag}" for tag in paper.tags)
         parts.append(f"   {tags}")
+
+    if paper.notes:
+        note_preview = paper.notes.split("\n")[0]
+        if len(note_preview) > 60:
+            note_preview = note_preview[:57] + "..."
+        parts.append(f"   [笔记] {note_preview}")
 
     missing = _get_missing_fields(paper)
     if missing:

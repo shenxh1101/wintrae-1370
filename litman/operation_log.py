@@ -93,7 +93,14 @@ class OperationLog:
         return timestamp
 
     def rollback(self, log_id: Optional[str] = None) -> Dict[str, Any]:
-        result = {"success": True, "message": "", "actions": [], "db_snapshot": None}
+        result = {
+            "success": True,
+            "message": "",
+            "actions": [],
+            "db_snapshot": None,
+            "failed_files": [],
+            "file_ops_success": True,
+        }
 
         log_file = self._get_latest_log() if log_id is None else self._get_log_by_id(log_id)
         if log_file is None:
@@ -109,17 +116,34 @@ class OperationLog:
             result["message"] = "操作日志文件损坏"
             return result
 
-        if "db_snapshot" in log_data:
-            result["db_snapshot"] = log_data["db_snapshot"]
-
         operations = list(reversed(log_data.get("operations", [])))
+        file_op_types = {"move", "rename", "delete"}
 
         for op in operations:
             action_result = self._rollback_operation(op)
             result["actions"].append(action_result)
 
-        log_file.rename(log_file.with_suffix(".rolledback.json"))
-        result["message"] = f"已回滚 {len(operations)} 个操作"
+            if op.get("type") in file_op_types and not action_result.get("success", True):
+                result["file_ops_success"] = False
+                result["failed_files"].append({
+                    "type": op.get("type"),
+                    "file": op.get("file_name", ""),
+                    "error": action_result.get("message", ""),
+                })
+
+        if result["file_ops_success"]:
+            if "db_snapshot" in log_data:
+                result["db_snapshot"] = log_data["db_snapshot"]
+            log_file.rename(log_file.with_suffix(".rolledback.json"))
+            result["message"] = f"已回滚 {len(operations)} 个操作"
+        else:
+            result["success"] = False
+            failed_count = len(result["failed_files"])
+            result["message"] = (
+                f"有 {failed_count} 个文件回滚失败，索引未恢复，"
+                f"日志保留以方便排查。请先手动处理失败的文件后再次尝试回滚。"
+            )
+
         return result
 
     def _rollback_operation(self, op: Dict[str, Any]) -> Dict[str, Any]:
