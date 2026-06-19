@@ -1,0 +1,4 @@
+文件名,标题,作者,年份,DOI,期刊,关键词,标签,课题,阅读状态,文件路径
+paper1.pdf,paper1,Test Author,,,,,important; deep learning,,unread,D:\TraeProjects\1370\test_papers\paper1.pdf
+sub_paper.pdf,sub paper,Test Author,,,,,,,unread,D:\TraeProjects\1370\test_papers\topic1\sub_paper.pdf
+random_file.pdf,Machine Learning Survey,Smith,2023,,,,,,unread,D:\TraeProjects\1370\test_papers\random_file.pdf

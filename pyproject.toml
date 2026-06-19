@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "litman"
+version = "0.1.0"
+description = "科研文献批量整理命令行工具"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    { name = "Research Assistant Tools" }
+]
+dependencies = [
+    "click>=8.1.0",
+    "pypdf>=4.0.0",
+    "PyYAML>=6.0",
+    "rich>=13.0.0",
+]
+
+[project.scripts]
+litman = "litman.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["litman*"]

@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "papers": {
+    "65740a9b21e4653d082954888b3798544928a87512a28930af8ea809ae99c043": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\2023_Smith_Machine Learning Survey_1.pdf",
+      "file_name": "2023_Smith_Machine Learning Survey_1.pdf",
+      "file_size": 431,
+      "file_hash": "65740a9b21e4653d082954888b3798544928a87512a28930af8ea809ae99c043",
+      "title": "Machine Learning Survey",
+      "authors": [
+        "Smith"
+      ],
+      "year": 2023,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
+      "topics": [],
+      "added_at": "2026-06-20T06:02:58.036307",
+      "updated_at": "2026-06-20T06:04:45.356392",
+      "notes": ""
+    },
+    "72a763f8644aece44ed6bad701b57a9a95911e8f9d223bfac2ee7351159d785a": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\n.d._Author_paper1.pdf",
+      "file_name": "n.d._Author_paper1.pdf",
+      "file_size": 513,
+      "file_hash": "72a763f8644aece44ed6bad701b57a9a95911e8f9d223bfac2ee7351159d785a",
+      "title": "paper1",
+      "authors": [
+        "Test Author"
+      ],
+      "year": null,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [
+        "important",
+        "deep learning"
+      ],
+      "read_status": "unread",
+      "topics": [],
+      "added_at": "2026-06-20T06:02:58.037509",
+      "updated_at": "2026-06-20T06:04:45.359050",
+      "notes": ""
+    },
+    "aab38761d8603b1f836521bfcb4353487c7a2de06946eeb8bf205fa676b9d9ab": {
+      "file_path": "D:\\TraeProjects\\1370\\test_papers\\topic1\\n.d._Author_sub paper.pdf",
+      "file_name": "n.d._Author_sub paper.pdf",
+      "file_size": 492,
+      "file_hash": "aab38761d8603b1f836521bfcb4353487c7a2de06946eeb8bf205fa676b9d9ab",
+      "title": "sub paper",
+      "authors": [
+        "Test Author"
+      ],
+      "year": null,
+      "doi": null,
+      "journal": null,
+      "keywords": [],
+      "tags": [],
+      "read_status": "unread",
+      "topics": [],
+      "added_at": "2026-06-20T06:02:58.039029",
+      "updated_at": "2026-06-20T06:04:45.362100",
+      "notes": ""
+    }
+  }
+}
